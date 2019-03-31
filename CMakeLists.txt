@@ -3,4 +3,4 @@ project(firefighterProblem)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(firefighterProblem main.cpp instance.cpp instance.h graph.cpp graph.h)
+add_executable(firefighterProblem src/main.cpp src/instance.cpp src/instance.h src/graph.cpp src/graph.h)
