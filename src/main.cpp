@@ -3,9 +3,10 @@
 
 int main() {
     Instance* instance = new Instance();
+    instance->Selector();
     instance->Start("../instances/1.txt");
     instance->Solve();
-    instance->PrintResult();
+//    instance->PrintResult();
     delete instance;
     return 0;
 }

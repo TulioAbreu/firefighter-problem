@@ -77,5 +77,4 @@ public:
     std::string toString();
 };
 
-
 #endif //FIREFIGHTERPROBLEM_GRAPH_H

@@ -15,6 +15,9 @@ class Graph;
 
 class Instance {
 private:
+    // Caminho do arquivo da instancia
+    std::string instanceFilepath;
+    
     // Quantos vértices possui a instância
     size_t verticesCounter;
 
@@ -54,6 +57,9 @@ public:
 
     // Imprime o relatorio
     void PrintResult();
+    
+    // Debug: Seleciona uma instancia
+    void Selector();
 };
 
 

@@ -1,5 +1,6 @@
 #include "instance.h"
 #include "graph.h"
+#include <dirent.h>
 #include <cassert>
 #include <iostream>
 #include <fstream>
@@ -10,6 +11,7 @@ Instance::Instance()
     this->edgesCounter = 0;
     this->fireIndex = 0;
     this->verticesCounter = 0;
+    this->instanceFilepath = "";
 }
 
 Instance::~Instance()
@@ -21,14 +23,19 @@ Instance::~Instance()
 void Instance::Start(std::string filepath)
 {
     this->graph = new Graph();
-    this->readInstaceFile(filepath);
+    if (this->instanceFilepath == "") {
+        this->readInstaceFile(filepath);
+    }
+    else {
+        this->readInstaceFile(this->instanceFilepath);
+    }
     this->graph->setVertexValue(this->fireIndex, BURNT); // Queima o primeiro vértice
 }
 
 
 void Instance::readInstaceFile(std::string filepath)
 {
-    std::cout << "Reading instance file..." << std::endl;
+    std::cout << "Reading instance file (" << filepath << ")" << std::endl;
     assert (filepath.size() > 0); // Confirma que foi passado um caminho para o arquivo
 
     std::ifstream instanceFile(filepath);
@@ -57,7 +64,7 @@ void Instance::Solve()
     assert (this->graph);
     assert (this->fireIndex >= 0);
     nextRound();
-    std::cout << this->graph->toString() << std::endl;
+//    std::cout << this->graph->toString() << std::endl;
 }
 
 
@@ -141,4 +148,49 @@ void Instance::PrintResult()
         std::cout << (i + 1) << " - " << this->defendedVertices[i] << std::endl;
     }
 
+}
+
+static std::vector<std::string> getInstanceFiles(std::string folderPath)
+{
+    std::vector<std::string> instance_files;
+    DIR* dir;
+    struct dirent* ent;
+    if ((dir = opendir(folderPath.c_str())) != nullptr) {
+        while ((ent = readdir(dir)) != nullptr) {
+            instance_files.emplace_back(ent->d_name);
+        }
+        closedir(dir);
+    } else {
+        std::cout << "[error] Nao foi possivel abrir a pasta indicada." << std::endl;
+    }
+
+    return instance_files;
+}
+
+
+void Instance::Selector()
+{
+    std::string folderPath = "../instances/";
+    std::vector<std::string> instanceFiles(getInstanceFiles(folderPath));
+    instanceFiles.erase(instanceFiles.begin(), instanceFiles.begin() + 2); // Remove "." and ".."
+    std::cout << "Selecione o arquivo de instancia: " << std::endl;
+    int count = 0;
+    for (size_t i = 0; i < instanceFiles.size(); ++i) {
+        std::cout << i << ". " << instanceFiles.at(i) << "\t";
+        count ++;
+        if (count % 3 == 0 && i > 1) {
+            std::cout << std::endl;
+            count = 0;
+        }
+    }
+    
+    int index;
+    std::cin >> index;
+    
+    if (index < 0 || index >= instanceFiles.size()) {
+        std::cout << "[error] Indice de arquivo invalido." << std::endl;
+    }
+    else {
+        this->instanceFilepath = folderPath + instanceFiles.at(index);
+    }
 }
