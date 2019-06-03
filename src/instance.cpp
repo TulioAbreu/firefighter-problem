@@ -137,17 +137,21 @@ static size_t getBurntVertices(Graph* graph) {
 
 void Instance::PrintResult()
 {
-    if (this->defendedVertices.size() == 0) {
+    if (getBurntVertices(this->graph) == 0) {
         std::cout << "[DEBUG] Nenhum vertice foi queimado." << std::endl;
         return;
     }
     std::cout << "Nro de vertices queimados = " << getBurntVertices(this->graph) << std::endl;
 
     std::cout << "Round - Vertice defendido" << std::endl;
-    for (size_t i = 0; i < this->defendedVertices.size(); ++i) {
-        std::cout << (i + 1) << " - " << this->defendedVertices[i] << std::endl;
+    if (this->defendedVertices.size() == 0) {
+        std::cout << "Nenhum vertice foi defendido." << std::endl;
     }
-
+    else {
+        for (size_t i = 0; i < this->defendedVertices.size(); ++i) {
+            std::cout << (i + 1) << " - " << this->defendedVertices[i] << std::endl;
+        }
+    }
 }
 
 static std::vector<std::string> getInstanceFiles(std::string folderPath)
@@ -176,15 +180,15 @@ void Instance::Selector()
     std::cout << "Selecione o arquivo de instancia: " << std::endl;
     int count = 0;
     for (size_t i = 0; i < instanceFiles.size(); ++i) {
-        std::cout << i << ". " << instanceFiles.at(i) << "\t";
+        std::cout << i << ". " << instanceFiles.at(i) << "\n";
         count ++;
-        if (count % 3 == 0 && i > 1) {
-            std::cout << std::endl;
-            count = 0;
-        }
+        // if (count % 3 == 0 && i > 1) {
+        //     std::cout << std::endl;
+        //     count = 0;
+        // }
     }
     
-    int index;
+    size_t index;
     std::cin >> index;
     
     if (index < 0 || index >= instanceFiles.size()) {
