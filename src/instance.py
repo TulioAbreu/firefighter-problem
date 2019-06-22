@@ -95,5 +95,11 @@ class Instance():
     def getVertex(self, index):
         return self.graph.getVertexByIndex(index)
 
+    def printReport(self):
+        print ('Num. vertices queimados = %s' % self.getVertexCounterByState(State.BURNT))
+
+        for defVertex in self.report:
+            print("Vertex %s deffended in round %s" % (defVertex['index'], defVertex['round']))
+
     def getGraphVertexCount(self):
         return self.graph.getVertexCount()
