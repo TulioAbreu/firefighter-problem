@@ -101,5 +101,15 @@ class Instance():
         for defVertex in self.report:
             print("Vertex %s deffended in round %s" % (defVertex['index'], defVertex['round']))
 
+    def getHeuristic(self):
+        return getVertexCounterByState(State.BURNT)
+
     def getGraphVertexCount(self):
         return self.graph.getVertexCount()
+
+    def filterUntouchedVertices(self):
+        untouchedVertices = list()
+        for i in range(self.graph.getVertexCount()):
+            if self.graph.getVertexByIndex(i).getState() == State.UNTOUCHED:
+                untouchedVertices.append(i)
+        return untouchedVertices

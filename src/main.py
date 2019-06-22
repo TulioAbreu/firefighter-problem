@@ -1,5 +1,6 @@
 from instance import Instance
 from vertex import State
+import selector
 import time
 
 
@@ -14,18 +15,12 @@ def main():
     print('Time = %s seconds' % str(finish_time-start_time))
 
 
-import random
 def selectDefenseVertex(instance:Instance):
     """
         This function defines how to select the vertex to defend on each round
     """
-    indexToBlock = 0
-    while True:
-        indexToBlock = random.randint(0, instance.getGraphVertexCount() - 1)
-        if instance.getVertex(indexToBlock).getState() == State.UNTOUCHED:
-            break
-    return indexToBlock
-
+    return selector.MiniMaxSelector(instance).selectDefenseVertex()
+    # return selector.RandomSelector(instance).selectDefenseVertex()
 
 def solve(instance:Instance):
     """
