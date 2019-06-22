@@ -6,7 +6,7 @@ import time
 
 def main():
     instance = Instance()
-    instance.readInstance('../instances/%s.txt' % str(2))
+    instance.readInstance('../instances/%s.txt' % str(3))
 
     start_time = time.time()
     solve(instance)
@@ -19,8 +19,9 @@ def selectDefenseVertex(instance:Instance):
     """
         This function defines how to select the vertex to defend on each round
     """
-    return selector.MiniMaxSelector(instance).selectDefenseVertex()
+    return selector.MiniMaxSelector(instance, 3).selectDefenseVertex()
     # return selector.RandomSelector(instance).selectDefenseVertex()
+
 
 def solve(instance:Instance):
     """
@@ -33,7 +34,6 @@ def solve(instance:Instance):
             instance.protectVertex(indexToBlock)
         if instance.nextRound() is not True:
             break
-
 
 if __name__ == "__main__":
     main()
