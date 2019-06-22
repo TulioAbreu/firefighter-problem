@@ -25,33 +25,42 @@ class RandomSelector(Selector):
         return indexToBlock
 
 
+import copy
 class MiniMaxSelector(Selector):
-    def __init__(self, instance, maxDepth):
+    def __init__(self, instance:Instance, maxDepth:int):
         super().__init__(instance)
         self.maxDepth = maxDepth
         self.maximizingPlayer = False
 
     def isTerminalNode(self):
-        raise NotImplementedError
+        return self.instance.getVertexCounterByState(State.UNTOUCHED) == 0
 
-    def getChildNodes(node:Instance):
-        raise NotImplementedError
+    def getChildNodes(self, node:Instance):
+        childNodes = list()
+        untouchedVertices = node.filterUntouchedVertices()
+        for untouchedVertex in untouchedVertices:
+            nodeCopy = copy.deepcopy(node)
+            nodeCopy.graph.setVertexState(untouchedVertex, State.PROTECTED)
+            nodeCopy.nextRound()
+            childNodes.append(nodeCopy)
+        return childNodes
 
     # TODO: Get the chosen child node while getting minimax value!
-    def minimax(node:Instance, depth, maximizingPlayer):
-        if depth == 0 or isTerminalNode():
+    def minimax(self, node:Instance, depth, maximizingPlayer):
+        if depth == 0 or self.isTerminalNode():
             return node.getHeuristic()
+
         if maximizingPlayer:
-            value = int('inf')
+            value = float('-inf')
             for childNode in getChildNodes(node):
                 value = max(value, minimax(childNode, depth-1, False))
             return value
         else:
-            value = -int('inf')
-            for childNode in getChildNodes(node):
-                value = min(value, minimax(childNode, depth-1, False))
+            value = float('inf')
+            for childNode in self.getChildNodes(node):
+                value = min(value, self.minimax(childNode, depth-1, False))
             return value
 
-    def selectDefenseVertex(self, instance:Instance):
-        value, defendedVertices =  minimax(instance, self.maxDepth, False)
+    def selectDefenseVertex(self):
+        print(self.minimax(self.instance, self.maxDepth, False))
         return (value, defendedVertices)
