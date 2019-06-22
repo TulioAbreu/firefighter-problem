@@ -73,8 +73,7 @@ class Instance():
                 self.fireList.append(neighbor)
                 self.burntVertices += 1
                 changed = True
-        # TODO: Remove this sort, TIME = $$
-        self.fireList.sort()
+        # self.fireList.sort()
         return changed
 
     def getVertexCounterByState(self, state):
@@ -102,7 +101,7 @@ class Instance():
             print("Vertex %s deffended in round %s" % (defVertex['index'], defVertex['round']))
 
     def getHeuristic(self):
-        return getVertexCounterByState(State.BURNT)
+        return self.getVertexCounterByState(State.BURNT)
 
     def getGraphVertexCount(self):
         return self.graph.getVertexCount()
