@@ -31,6 +31,8 @@ class MiniMaxSelector(Selector):
         super().__init__(instance)
         self.maxDepth = maxDepth
         self.maximizingPlayer = False
+        self.alpha = float('-inf')
+        self.beta = float('inf')
 
     def isTerminalNode(self):
         return self.instance.getVertexCounterByState(State.UNTOUCHED) == 0
@@ -49,22 +51,40 @@ class MiniMaxSelector(Selector):
                 minValue = nodeValue
         return [node for node in childNodes if node[0].getHeuristic() <= minValue]
 
-    def minimax(self, node:Instance, depth:int, path:[int]):
-        childNodes = self.getChildNodes(node)
-        if depth == 0 or childNodes == []:
+    def isGameOver(self, node:Instance):
+        nodeCopy = copy.deepcopy(node)
+        return nodeCopy.nextRound() is False
+
+    def minimax(self, node:Instance, depth:int, path:[int], isMaximizingPlayer:bool):
+        if depth == 0 or self.isGameOver(node):
             return node.getHeuristic(), path
 
-        bestValue = float('inf')
-        pathToUse = []
-        for childNode, chosenVertex in childNodes:
-            minmaxValue, usedPath = self.minimax(childNode, depth-1, path + [chosenVertex])
-
-            if bestValue >= minmaxValue:
-                bestValue = minmaxValue
-                pathToUse = usedPath
-
-        return bestValue, pathToUse
+        if isMaximizingPlayer:
+            childNode = copy.deepcopy(node)
+            childNode.nextRound()
+            value, newPath = self.minimax(childNode, depth-1, path, False)
+            self.alpha = max(self.alpha, value)
+            return value, newPath
+        else:
+            bestValue = float('inf')
+            pathToUse = []
+            childNodePlays = node.filterUntouchedVertices()
+            for childNodePlay in childNodePlays:
+                childNode = copy.deepcopy(node)
+                childNode.protectVertex(childNodePlay)
+                value, usedPath = self.minimax(childNode, depth-1, path + [childNodePlay], True)
+                if value <= bestValue:
+                    bestValue = value
+                    pathToUse = usedPath
+                self.beta = min(self.beta, value)
+                if self.beta < self.alpha:
+                    print('Corte realizado')
+                    break
+            return bestValue, pathToUse
 
     def selectDefenseVertex(self):
-        _, optimalPath = self.minimax(self.instance, self.maxDepth, [])
+        value, optimalPath = self.minimax(self.instance, self.maxDepth, [], False)
+        print ('Optimal value =', value)
+        print ('Optimal path =', optimalPath)
+        print ('-------------------------------------------------')
         return optimalPath
