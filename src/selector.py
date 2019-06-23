@@ -31,36 +31,43 @@ class MiniMaxSelector(Selector):
         super().__init__(instance)
         self.maxDepth = maxDepth
         self.maximizingPlayer = False
+        self.play = None
 
     def isTerminalNode(self):
         return self.instance.getVertexCounterByState(State.UNTOUCHED) == 0
 
     def getChildNodes(self, node:Instance):
         childNodes = list()
-        untouchedVertices = node.filterUntouchedVertices()
+        untouchedVertices = node.filterUntouchedVertices() # Options to play
+        # Advance a state on simulation for each option
         for untouchedVertex in untouchedVertices:
             nodeCopy = copy.deepcopy(node)
-            nodeCopy.graph.setVertexState(untouchedVertex, State.PROTECTED)
+            nodeCopy.protectVertex(untouchedVertex)
             nodeCopy.nextRound()
-            childNodes.append(nodeCopy)
+            childNodes.append((nodeCopy, untouchedVertex))
         return childNodes
 
-    # TODO: Get the chosen child node while getting minimax value!
-    def minimax(self, node:Instance, depth, maximizingPlayer):
-        if depth == 0 or self.isTerminalNode():
-            return node.getHeuristic()
+    def isLeafNode(self, childNodes, depth):
+        return depth == 0 or childNodes == []
 
-        if maximizingPlayer:
-            value = float('-inf')
-            for childNode in getChildNodes(node):
-                value = max(value, minimax(childNode, depth-1, False))
-            return value
+    def minimax(self, node:Instance, depth:int, path:[int]):
+        childNodes = self.getChildNodes(node)
+
+        if self.isLeafNode(childNodes, depth):
+            return node.getHeuristic(), path
+
         else:
-            value = float('inf')
-            for childNode in self.getChildNodes(node):
-                value = min(value, self.minimax(childNode, depth-1, False))
-            return value
+            bestValue = float('inf')
+            pathToUse = []
+            for childNode, chosenVertex in childNodes:
+                minmaxValue, usedPath = self.minimax(childNode, depth-1, path + [chosenVertex])
+
+                if bestValue >= minmaxValue:
+                    bestValue = minmaxValue
+                    pathToUse = usedPath
+
+            return bestValue, pathToUse
 
     def selectDefenseVertex(self):
-        print(self.minimax(self.instance, self.maxDepth, False))
-        return (value, defendedVertices)
+        _, optimalPath = self.minimax(self.instance, self.maxDepth, [])
+        return optimalPath[0]

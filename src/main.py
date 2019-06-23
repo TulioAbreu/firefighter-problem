@@ -6,7 +6,7 @@ import time
 
 def main():
     instance = Instance()
-    instance.readInstance('../instances/%s.txt' % str(3))
+    instance.readInstance('../instances/%s.txt' % str(2))
 
     start_time = time.time()
     solve(instance)
@@ -28,12 +28,16 @@ def solve(instance:Instance):
         This function is called to solve an instance
     """
     print ('Grafo com %s vertices' % instance.getGraphVertexCount())
+    i = 0
     while True: # Finishes when there is no changes between two rounds
         if instance.getVertexCounterByState(State.UNTOUCHED) > 0:
             indexToBlock = selectDefenseVertex(instance)
-            instance.protectVertex(indexToBlock)
+            if indexToBlock != None:
+                instance.protectVertex(indexToBlock)
         if instance.nextRound() is not True:
             break
+        i += 1
+
 
 if __name__ == "__main__":
     main()
