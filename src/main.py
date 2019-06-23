@@ -16,12 +16,12 @@ def runInstance(instanceNumber):
     assert (finish_time-start_time) < 600.0  # 10 min time limit
 
 
-def selectDefenseVertex(instance:Instance):
+def selectDefenseVertex(instance:Instance) -> [int]:
     """
         This function defines how to select the vertex to defend on each round
     """
-    return selector.MiniMaxSelector(instance, 10).selectDefenseVertex()
-    # return selector.RandomSelector(instance).selectDefenseVertex()
+    return selector.MiniMaxSelector(instance, 3).selectDefenseVertex()
+    # return [selector.RandomSelector(instance).selectDefenseVertex()]
 
 
 def solve(instance:Instance):
@@ -30,11 +30,15 @@ def solve(instance:Instance):
     """
     print ('Grafo com %s vertices' % instance.getGraphVertexCount())
     i = 0
+    toBlock = []
     while True: # Finishes when there is no changes between two rounds
         if instance.getVertexCounterByState(State.UNTOUCHED) > 0:
-            indexToBlock = selectDefenseVertex(instance)
-            if indexToBlock is not None:
-                instance.protectVertex(indexToBlock)
+            if len(toBlock) > 0:
+                instance.protectVertex(toBlock.pop(0))
+            else:
+                indexesToBlock = selectDefenseVertex(instance)
+                instance.protectVertex(indexesToBlock.pop(0))
+                [toBlock.append(index) for index in indexesToBlock]
         if instance.nextRound() is not True:
             break
         i += 1
@@ -43,5 +47,5 @@ def solve(instance:Instance):
 if __name__ == "__main__":
     for i in range(1, 12):
         print ('## Instance %s' % i)
-        runInstance(i)
+        runInstance(9)
         print ('############################')

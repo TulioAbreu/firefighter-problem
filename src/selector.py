@@ -31,7 +31,6 @@ class MiniMaxSelector(Selector):
         super().__init__(instance)
         self.maxDepth = maxDepth
         self.maximizingPlayer = False
-        self.play = None
 
     def isTerminalNode(self):
         return self.instance.getVertexCounterByState(State.UNTOUCHED) == 0
@@ -44,12 +43,11 @@ class MiniMaxSelector(Selector):
             nodeCopy = copy.deepcopy(node)
             nodeCopy.protectVertex(untouchedVertex)
             nodeCopy.nextRound()
-
+            childNodes.append((nodeCopy, untouchedVertex))
             nodeValue = nodeCopy.getHeuristic()
             if nodeValue <= minValue:
                 minValue = nodeValue
-                childNodes.append((nodeCopy, untouchedVertex))
-        return childNodes
+        return [node for node in childNodes if node[0].getHeuristic() <= minValue]
 
     def minimax(self, node:Instance, depth:int, path:[int]):
         childNodes = self.getChildNodes(node)
@@ -69,5 +67,4 @@ class MiniMaxSelector(Selector):
 
     def selectDefenseVertex(self):
         _, optimalPath = self.minimax(self.instance, self.maxDepth, [])
-        print (optimalPath)
-        return optimalPath[0]
+        return optimalPath

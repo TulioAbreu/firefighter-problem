@@ -43,10 +43,10 @@ class Vertex():
     
     def __str__(self):
         stateStr = ""
-        if self.State == State.UNTOUCHED:
-            StateStr = "UNTOUCHED"
-        elif self.State == State.BURNT:
-            StateStr = "BURNT"
-        elif self.State == State.PROTECTED:
-            StateStr = "PROTECTED"
+        if self.state == State.UNTOUCHED:
+            stateStr = "UNTOUCHED"
+        elif self.state == State.BURNT:
+            stateStr = "BURNT"
+        elif self.state == State.PROTECTED:
+            stateStr = "PROTECTED"
         return "Index=" + str(self.index) + "; State=" + stateStr + "; Neighbors=" + str(self.neighbors)
