@@ -31,59 +31,60 @@ class MiniMaxSelector(Selector):
         super().__init__(instance)
         self.maxDepth = maxDepth
         self.maximizingPlayer = False
-        self.alpha = float('-inf')
-        self.beta = float('inf')
+        # alpha = float('-inf')
+        # beta = float('inf')
 
-    def isTerminalNode(self):
-        return self.instance.getVertexCounterByState(State.UNTOUCHED) == 0
+    # def isTerminalNode(self):
+    #     return self.instance.getVertexCounterByState(State.UNTOUCHED) == 0
 
-    def getChildNodes(self, node:Instance):
-        childNodes = list()
-        untouchedVertices = node.filterUntouchedVertices() # Options to play
-        minValue = float('inf')
-        for untouchedVertex in untouchedVertices:
-            nodeCopy = copy.deepcopy(node)
-            nodeCopy.protectVertex(untouchedVertex)
-            nodeCopy.nextRound()
-            childNodes.append((nodeCopy, untouchedVertex))
-            nodeValue = nodeCopy.getHeuristic()
-            if nodeValue <= minValue:
-                minValue = nodeValue
-        return [node for node in childNodes if node[0].getHeuristic() <= minValue]
+    # def getChildNodes(self, node:Instance):
+    #     childNodes = list()
+    #     untouchedVertices = node.filterUntouchedVertices() # Options to play
+    #     minValue = float('inf')
+    #     for untouchedVertex in untouchedVertices:
+    #         nodeCopy = copy.deepcopy(node)
+    #         nodeCopy.protectVertex(untouchedVertex)
+    #         nodeCopy.nextRound()
+    #         childNodes.append((nodeCopy, untouchedVertex))
+    #         nodeValue = nodeCopy.getHeuristic()
+    #         if nodeValue <= minValue:
+    #             minValue = nodeValue
+    #     return [node for node in childNodes if node[0].getHeuristic() <= minValue]
 
     def isGameOver(self, node:Instance):
         nodeCopy = copy.deepcopy(node)
         return nodeCopy.nextRound() is False
 
-    def minimax(self, node:Instance, depth:int, path:[int], isMaximizingPlayer:bool):
+    def minimax(self, node:Instance, depth:int, path:[int], isMaximizingPlayer:bool, alpha, beta):
         if depth == 0 or self.isGameOver(node):
             return node.getHeuristic(), path
 
         if isMaximizingPlayer:
             childNode = copy.deepcopy(node)
             childNode.nextRound()
-            value, newPath = self.minimax(childNode, depth-1, path, False)
-            self.alpha = max(self.alpha, value)
+            value, newPath = self.minimax(childNode, depth-1, path, False, alpha, beta)
+            alpha = max(alpha, value)
             return value, newPath
         else:
             bestValue = float('inf')
             pathToUse = []
             childNodePlays = node.filterUntouchedVertices()
+
             for childNodePlay in childNodePlays:
                 childNode = copy.deepcopy(node)
                 childNode.protectVertex(childNodePlay)
-                value, usedPath = self.minimax(childNode, depth-1, path + [childNodePlay], True)
-                if value <= bestValue:
+                value, usedPath = self.minimax(childNode, depth-1, path + [childNodePlay], True, alpha, beta)
+                if value < bestValue:
                     bestValue = value
                     pathToUse = usedPath
-                self.beta = min(self.beta, value)
-                if self.beta < self.alpha:
+                beta = min(beta, value)
+                if alpha >= beta:
                     print('Corte realizado')
                     break
             return bestValue, pathToUse
 
     def selectDefenseVertex(self):
-        value, optimalPath = self.minimax(self.instance, self.maxDepth, [], False)
+        value, optimalPath = self.minimax(self.instance, self.maxDepth, [], False, float('-inf'), float('inf'))
         print ('Optimal value =', value)
         print ('Optimal path =', optimalPath)
         print ('-------------------------------------------------')
