@@ -106,7 +106,7 @@ class Instance():
     def getGraphVertexCount(self):
         return self.graph.getVertexCount()
 
-    def filterUntouchedVertices(self):
+    def filterUntouchedVertices(self) -> [int]:
         untouchedVertices = list()
         for i in range(self.graph.getVertexCount()):
             if self.graph.getVertexByIndex(i).getState() == State.UNTOUCHED:

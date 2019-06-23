@@ -39,35 +39,35 @@ class MiniMaxSelector(Selector):
     def getChildNodes(self, node:Instance):
         childNodes = list()
         untouchedVertices = node.filterUntouchedVertices() # Options to play
-        # Advance a state on simulation for each option
+        minValue = float('inf')
         for untouchedVertex in untouchedVertices:
             nodeCopy = copy.deepcopy(node)
             nodeCopy.protectVertex(untouchedVertex)
             nodeCopy.nextRound()
-            childNodes.append((nodeCopy, untouchedVertex))
-        return childNodes
 
-    def isLeafNode(self, childNodes, depth):
-        return depth == 0 or childNodes == []
+            nodeValue = nodeCopy.getHeuristic()
+            if nodeValue <= minValue:
+                minValue = nodeValue
+                childNodes.append((nodeCopy, untouchedVertex))
+        return childNodes
 
     def minimax(self, node:Instance, depth:int, path:[int]):
         childNodes = self.getChildNodes(node)
-
-        if self.isLeafNode(childNodes, depth):
+        if depth == 0 or childNodes == []:
             return node.getHeuristic(), path
 
-        else:
-            bestValue = float('inf')
-            pathToUse = []
-            for childNode, chosenVertex in childNodes:
-                minmaxValue, usedPath = self.minimax(childNode, depth-1, path + [chosenVertex])
+        bestValue = float('inf')
+        pathToUse = []
+        for childNode, chosenVertex in childNodes:
+            minmaxValue, usedPath = self.minimax(childNode, depth-1, path + [chosenVertex])
 
-                if bestValue >= minmaxValue:
-                    bestValue = minmaxValue
-                    pathToUse = usedPath
+            if bestValue >= minmaxValue:
+                bestValue = minmaxValue
+                pathToUse = usedPath
 
-            return bestValue, pathToUse
+        return bestValue, pathToUse
 
     def selectDefenseVertex(self):
         _, optimalPath = self.minimax(self.instance, self.maxDepth, [])
+        print (optimalPath)
         return optimalPath[0]

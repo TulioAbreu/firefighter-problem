@@ -4,22 +4,23 @@ import selector
 import time
 
 
-def main():
+def runInstance(instanceNumber):
     instance = Instance()
-    instance.readInstance('../instances/%s.txt' % str(2))
+    instance.readInstance('../instances/%s.txt' % str(instanceNumber))
 
     start_time = time.time()
     solve(instance)
     finish_time = time.time()
     instance.printReport()
     print('Time = %s seconds' % str(finish_time-start_time))
+    assert (finish_time-start_time) < 600.0  # 10 min time limit
 
 
 def selectDefenseVertex(instance:Instance):
     """
         This function defines how to select the vertex to defend on each round
     """
-    return selector.MiniMaxSelector(instance, 3).selectDefenseVertex()
+    return selector.MiniMaxSelector(instance, 10).selectDefenseVertex()
     # return selector.RandomSelector(instance).selectDefenseVertex()
 
 
@@ -32,7 +33,7 @@ def solve(instance:Instance):
     while True: # Finishes when there is no changes between two rounds
         if instance.getVertexCounterByState(State.UNTOUCHED) > 0:
             indexToBlock = selectDefenseVertex(instance)
-            if indexToBlock != None:
+            if indexToBlock is not None:
                 instance.protectVertex(indexToBlock)
         if instance.nextRound() is not True:
             break
@@ -40,4 +41,7 @@ def solve(instance:Instance):
 
 
 if __name__ == "__main__":
-    main()
+    for i in range(1, 12):
+        print ('## Instance %s' % i)
+        runInstance(i)
+        print ('############################')
