@@ -3,6 +3,9 @@ from vertex import Vertex, State
 
 class Instance():
     def __init__(self):
+        """
+            Inicializa as variáveis de uma instância
+        """
         self.graph = Graph()
         self.numVertices = 0
         self.numEdges = 0
@@ -14,6 +17,13 @@ class Instance():
         self.report = []
 
     def readInstance(self, filepath:str):
+        """
+            Realiza a leitura de um arquivo de instância
+
+            Parâmetros
+            ---
+            filepath: str - Caminho para o arquivo de instância
+        """
         instFile = open(filepath, "r")
         self.numVertices = int(instFile.readline())
         self.startVertices(self.numVertices)
@@ -25,24 +35,30 @@ class Instance():
             burntVertex = int(instFile.readline())
             self.fireList.append(burntVertex)
             self.graph.setVertexState(burntVertex, State.BURNT)
-            # self.graph.getVertexByIndex(burntVertex).setState(State.BURNT)
 
         for _ in range(self.numEdges):
             source, target = [int(v) for v in instFile.readline().split(' ')]
             self.graph.vertices[source].addNeighbor(target)
             self.graph.vertices[target].addNeighbor(source)
 
-    def startVertices(self, numVertices):
+    def startVertices(self, numVertices: int):
+        """
+            Inicializa o grafo com N vertices vazios
+
+            Parâmetros
+            ---
+            numVertices: int - Número de vértices a serem criados no grafo
+        """
         for i in range(numVertices):
             self.graph.vertices.append(Vertex(i))
 
     def nextRound(self):
         """
-            Calculate next round of vertices
+            Leva a instância para o seu próximo round, propagando o fogo
 
-            Returns
+            Retorna
             ---
-            bool : If something changed inside graph
+            bool: O grafo foi modificado durante a expansão do fogo?
         """
         initialList = self.fireList.copy()
         changed = False
@@ -53,14 +69,14 @@ class Instance():
 
     def propagateFire(self, fireIndex):
         """
-            Propagate fire inside instance's graph.
+            Propaga o fogo dentro de um grafo
 
-            Returns
+            Retorna
             ---
-            bool : If something changed inside graph
+            bool: Retorna se o grafo foi modificado durante a expansão do fogo?
         """
         changed = False
-        burntVertex = self.graph.vertices[fireIndex]
+        burntVertex = self.graph.getVertexByIndex(fireIndex)
         for neighbor in burntVertex.getNeighbors():
             neighborState = self.graph.getVertexByIndex(neighbor).getState()
             if neighborState == State.BURNT:
@@ -69,11 +85,9 @@ class Instance():
                 pass
             elif neighborState == State.UNTOUCHED:
                 self.graph.setVertexState(neighbor, State.BURNT)
-                # self.graph.getVertexByIndex(neighbor).setState(State.BURNT)
                 self.fireList.append(neighbor)
                 self.burntVertices += 1
                 changed = True
-        # self.fireList.sort()
         return changed
 
     def getVertexCounterByState(self, state):
@@ -84,12 +98,13 @@ class Instance():
         return count
 
     def protectVertex(self, index):
-        self.graph.setVertexState(index, State.PROTECTED)
-        self.protectedVertices.append(index)
-        self.report.append({
-            'index': int(index),
-            'round': int(self.roundNumber),
-        })
+        if self.graph.getVertexByIndex(index).getState() == State.UNTOUCHED:
+            self.graph.setVertexState(index, State.PROTECTED)
+            self.protectedVertices.append(index)
+            self.report.append({
+                'index': int(index),
+                'round': int(self.roundNumber),
+            })
 
     def getVertex(self, index):
         return self.graph.getVertexByIndex(index)

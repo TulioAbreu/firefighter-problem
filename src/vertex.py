@@ -7,37 +7,55 @@ class State(Enum):
 
 class Vertex():
     def __init__(self, index):
+        """
+            Inicializa um vértice com um índicee um estado intocado
+        """
         self.index = index
         self.state = State.UNTOUCHED
         self.neighbors = list()
     
     def getIndex(self) -> int:
         """
-            Return vertex index from graph
+            Retorna
+            ---
+            int: Retorna o índice do vértice
         """
         return self.index
     
     def setState(self, state:State):
         """
-            Set vertex State
+            Modifica o estado atual do vértice
+
+            Parâmetros
+            ---
+            state:State - Novo estado do vértice
         """
+        assert self.state == State.UNTOUCHED
         self.state = state;
     
     def getState(self) -> State:
         """
-            Get vertex State
+            Retorna
+            ---
+            State: Estado atual do vértice
         """
         return self.state
 
-    def addNeighbor(self, index):
+    def addNeighbor(self, index: int):
         """
-            Add a neighbor (index) to vertex
+            Adiciona um vizinho ao vértice
+            
+            Parâmetros
+            ---
+            index: int - Indice do novo vizinho do vertice
         """
         self.neighbors.append(index)
 
     def getNeighbors(self) -> [int]:
         """
-            Returns all vertex's neighbors (indexes)
+            Retorna
+            ---
+            int: Indice de todos os vizinhos do vértice
         """
         return self.neighbors
     
@@ -49,4 +67,8 @@ class Vertex():
             stateStr = "BURNT"
         elif self.state == State.PROTECTED:
             stateStr = "PROTECTED"
-        return "Index=" + str(self.index) + "; State=" + stateStr + "; Neighbors=" + str(self.neighbors)
+        return 'Index=%s; State=%s; Neighbors=%s' % (
+            self.index,
+            stateStr,
+            self.neighbors
+        )

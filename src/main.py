@@ -1,80 +1,115 @@
 from instance import Instance
 from vertex import State
+from csvGenerator import CsvGenerator
 import selector
 import time
 
 
-def runInstance(instanceNumber):
-    instance = Instance()
-    print('Reading file ../instances/%s.txt' % str(instanceNumber))
-    instance.readInstance('../instances/%s.txt' % str(instanceNumber))
+def runInstance(instanceNumber: int) -> (Instance, float):
+    """
+        Realiza a leitura e a execução de uma instância
+        Parâmetros
+        ---
+        int: número da instância a ser executada
 
+        Retorna
+        ---
+        Instance: instância em seu estado final
+        float: tempo de execução
+    """
+    instance = Instance()
+    filepath = '../instances/%s.txt' % instanceNumber
+    print('Lendo o arquivo de instancia... (%s)' % filepath)
+    instance.readInstance(filepath)
+    print ('Graph with %s vertices' % instance.getGraphVertexCount())
     start_time = time.time()
     solve(instance)
     finish_time = time.time()
+
     instance.printReport()
     print('Time = %s seconds' % str(finish_time-start_time))
     assert (finish_time-start_time) < 600.0  # 10 min time limit
+
     return (instance, finish_time-start_time)
 
 
-def selectDefenseVertex(instance:Instance) -> [int]:
+def solve(instance: Instance):
     """
-        This function defines how to select the vertex to defend on each round
-    """
-    # return [int(input("Digite um numero para defesa: "))]
-    return selector.MiniMaxSelector(instance, 3).selectDefenseVertex()
-    # return [selector.RandomSelector(instance).selectDefenseVertex()]
+        Soluciona uma dada instância
 
-
-def solve(instance:Instance):
+        Parâmetros
+        ---
+        Instance: instâcia a ser resolvida
     """
-        This function is called to solve an instance
-    """
-    print ('Graph has %s vertices' % instance.getGraphVertexCount())
-
-    i = 0
+    FIREMEN_AMOUNT = 5
+    MINIMAX_MAX_DEPTH = 4
     toBlock = []
-    while True: # Finishes when there is no changes between two rounds
+    while True:
         if instance.getVertexCounterByState(State.UNTOUCHED) > 0:
-            for i in range(5):
+            for i in range(FIREMEN_AMOUNT):
                 if len(toBlock) > 0:
                     instance.protectVertex(toBlock.pop(0))
                 else:
-                    indexesToBlock = selectDefenseVertex(instance)
+                    indexesToBlock = selector.MiniMaxSelector(instance, MINIMAX_MAX_DEPTH).selectDefenseVertex()
                     if indexesToBlock != []:
                         instance.protectVertex(indexesToBlock.pop(0))
-                        # instance.protectVertex(indexesToBlock.pop(0))
                         [toBlock.append(index) for index in indexesToBlock]
+        # Propaga o fogo e retorna se existe um proximo round
         if instance.nextRound() is not True:
+            # Se nao existe um proximo round o loop é finalizado
             break
-        i += 1
 
 
-def saveCSV(results):
-    file = open("../output.csv", "w")
-    file.write('Instância; Vertices Queimados; Total de Vertices; Defendidos por Round; Tempo\n')
-    for i, (instance, time) in enumerate(results):
-        line = '%s; %s; %s; %s; %s\n' % (
-            str(i+1),
-            instance.getVertexCounterByState(State.BURNT),
-            instance.getGraphVertexCount(),
-            defPerRoundScript(instance),
-            str(time)
-        )
-        file.write(line)
-    file.close()
+def saveCSV(results: [(Instance, float)]):
+    """
+        Realiza a preparação dos dados e os salva em um arquivo CSV
+
+        Parâmetros
+        ---
+        [Instancia, float]: Lista contendo instâncias em seus estados finais e
+                            seus respectivos tempos de execução
+    """
+    headerElements = [
+        'Instância',
+        'Vértices Queimados',
+        'Total de Vértices',
+        'Defesas por Round',
+        'Tempo de Execução'
+    ]
+    dataMatrix = []
+    for i, (instance, execTime) in enumerate(results):
+        matrixLine = [
+            i+1,                                            # Instância
+            instance.getVertexCounterByState(State.BURNT),  # Vertices Queimados
+            instance.getGraphVertexCount(),                 # Total de Vertices
+            defPerRoundScript(instance),                    # Defesas por Round
+            str(round(execTime, 4)).replace('.', ',')       # Tempo de execução
+        ]
+        dataMatrix.append(matrixLine)
+
+    CsvGenerator('../output.csv', headerElements, dataMatrix).writeCSV()
 
 
-def defPerRoundScript(instance:Instance):
+def defPerRoundScript(instance: Instance) -> str:
+    """
+        Formata uma string contendo os vértices defendidos a cada round
+        
+        Parâmetros
+        ---
+        Instance: instância em seu estado final
+
+        Retorna
+        ---
+        str: string contendo vértices defendidos a cada round
+    """
     numRounds = max(instance.report, key=lambda x:x['round'])['round']
     finalStr = ""
     for i in range(numRounds):
         roundNum = i+1
-        protected = [str(e['index']) for e in instance.report if e['round'] == roundNum]
-        finalStr += ('Round %s (' % str(roundNum)) + ", ".join(protected) + ')  '
+        protected = [str(e['index']) for e in instance.report 
+                                        if e['round'] == roundNum]
+        finalStr += 'Round %s (%s)  ' % (roundNum, ", ".join(protected))
     return finalStr
-    # print("Vertex %s deffended in round %s" % (defVertex['index'], defVertex['round']))
 
 
 if __name__ == "__main__":
