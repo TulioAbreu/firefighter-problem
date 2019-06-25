@@ -23,17 +23,20 @@ def runInstance(instanceNumber: int) -> (Instance, float):
     instance.readInstance(filepath)
     print ('Graph with %s vertices' % instance.getGraphVertexCount())
     start_time = time.time()
-    solve(instance)
+    result = solve(instance, start_time)
     finish_time = time.time()
 
     instance.printReport()
     print('Time = %s seconds' % str(finish_time-start_time))
     assert (finish_time-start_time) < 600.0  # 10 min time limit
 
-    return (instance, finish_time-start_time)
+    if result is not None:
+        return (result, finish_time-start_time)
+    else:
+        return (instance, finish_time-start_time)
 
 
-def solve(instance: Instance):
+def solve(instance: Instance, startTime):
     """
         Soluciona uma dada instância
 
@@ -44,20 +47,22 @@ def solve(instance: Instance):
     FIREMEN_AMOUNT = 5
     MINIMAX_MAX_DEPTH = 4
     toBlock = []
-    while True:
-        if instance.getVertexCounterByState(State.UNTOUCHED) > 0:
-            for i in range(FIREMEN_AMOUNT):
-                if len(toBlock) > 0:
-                    instance.protectVertex(toBlock.pop(0))
-                else:
-                    indexesToBlock = selector.MiniMaxSelector(instance, MINIMAX_MAX_DEPTH).selectDefenseVertex()
-                    if indexesToBlock != []:
-                        instance.protectVertex(indexesToBlock.pop(0))
-                        [toBlock.append(index) for index in indexesToBlock]
-        # Propaga o fogo e retorna se existe um proximo round
-        if instance.nextRound() is not True:
-            # Se nao existe um proximo round o loop é finalizado
-            break
+    return selector.BranchAndBoundSelector(instance, startTime).selectDefenseVertex()
+
+    # while True:
+    #     if instance.getVertexCounterByState(State.UNTOUCHED) > 0:
+    #         for i in range(FIREMEN_AMOUNT):
+    #             if len(toBlock) > 0:
+    #                 instance.protectVertex(toBlock.pop(0))
+    #             else:
+    #                 indexesToBlock = selector.MiniMaxSelector(instance, MINIMAX_MAX_DEPTH).selectDefenseVertex()
+    #                 if indexesToBlock != []:
+    #                     instance.protectVertex(indexesToBlock.pop(0))
+    #                     [toBlock.append(index) for index in indexesToBlock]
+    #     # Propaga o fogo e retorna se existe um proximo round
+    #     if instance.nextRound() is not True:
+    #         # Se nao existe um proximo round o loop é finalizado
+    #         break
 
 
 def saveCSV(results: [(Instance, float)]):
