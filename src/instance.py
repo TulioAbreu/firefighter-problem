@@ -3,9 +3,6 @@ from vertex import Vertex, State
 
 class Instance():
     def __init__(self):
-        """
-            Inicializa as variáveis de uma instância
-        """
         self.graph = Graph()
         self.numVertices = 0
         self.numEdges = 0
@@ -52,7 +49,7 @@ class Instance():
         for i in range(numVertices):
             self.graph.vertices.append(Vertex(i))
 
-    def nextRound(self):
+    def nextRound(self) -> bool:
         """
             Leva a instância para o seu próximo round, propagando o fogo
 
@@ -60,16 +57,20 @@ class Instance():
             ---
             bool: O grafo foi modificado durante a expansão do fogo?
         """
-        initialList = self.fireList.copy()
         changed = False
-        for fireIndex in initialList:
+        fireIndexes = self.fireList.copy()
+        for fireIndex in fireIndexes:
             changed = changed | self.propagateFire(fireIndex)
         self.roundNumber += 1
+
         return changed
 
-    def propagateFire(self, fireIndex):
+    def propagateFire(self, fireIndex: int) -> bool:
         """
-            Propaga o fogo dentro de um grafo
+            Propaga o fogo para os vizinhos de um vertice
+            Parametros
+            ---
+            fireIndex: int - Indice do fogo a ser propagado
 
             Retorna
             ---
@@ -77,6 +78,7 @@ class Instance():
         """
         changed = False
         burntVertex = self.graph.getVertexByIndex(fireIndex)
+
         for neighbor in burntVertex.getNeighbors():
             neighborState = self.graph.getVertexByIndex(neighbor).getState()
             if neighborState == State.BURNT:
@@ -90,23 +92,51 @@ class Instance():
                 changed = True
         return changed
 
-    def getVertexCounterByState(self, state):
+    def getVertexCounterByState(self, state: State) -> int:
+        """
+            Parametros
+            ---
+            state: State - Estado de vertice a ser contado
+
+            Retorna
+            ---
+            int - Numero de ocorrencias do estado state dentro do grafo
+        """
         count = 0
         for vertex in self.graph.getVertices():
             if vertex.getState() == state:
                 count += 1
         return count
 
-    def protectVertex(self, index):
-        if self.graph.getVertexByIndex(index).getState() == State.UNTOUCHED:
-            self.graph.setVertexState(index, State.PROTECTED)
-            self.protectedVertices.append(index)
-            self.report.append({
-                'index': int(index),
-                'round': int(self.roundNumber),
-            })
+    def protectVertex(self, index: int):
+        """
+            Parametros:
+            ---
+            index: int - Indice do vertice a ser protegido
+        """
+        vertexState = self.graph.getVertexByIndex(index).getState()
 
-    def getVertex(self, index):
+        # Apenas vertices intocados podem ser o seu valor modificado
+        assert vertexState == State.UNTOUCHED
+
+        self.graph.setVertexState(index, State.PROTECTED)
+        self.protectedVertices.append(index)
+        
+        self.report.append({
+            'index': int(index),
+            'round': int(self.roundNumber),
+        })
+
+    def getVertex(self, index: int) -> Vertex:
+        """
+            Parametros
+            ---
+            index: int - Indice do vertice a ser retornado
+
+            Retorna
+            ---
+            Vertex - Vertice a ser retornado
+        """
         return self.graph.getVertexByIndex(index)
 
     def printReport(self):
@@ -115,10 +145,15 @@ class Instance():
         for defVertex in self.report:
             print("Vertex %s deffended in round %s" % (defVertex['index'], defVertex['round']))
 
-    def getHeuristic(self):
+    def getHeuristic(self) -> int:
         return self.getVertexCounterByState(State.BURNT)
 
-    def getGraphVertexCount(self):
+    def getGraphVertexCount(self) -> int:
+        """
+            Retorna
+            ---
+            int - Numero de vertices presentes no grafo da instancia
+        """
         return self.graph.getVertexCount()
 
     def filterUntouchedVertices(self) -> [int]:

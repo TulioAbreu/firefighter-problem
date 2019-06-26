@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from vertex import State
+from vertex import State, Vertex
 from instance import Instance
+from utils import Stack
 
 class Selector(ABC):
     def __init__(self, instance):
@@ -23,30 +24,8 @@ class RandomSelector(Selector):
             if self.instance.getVertex(indexToBlock).getState() == State.UNTOUCHED:
                 break
         return indexToBlock
-######################################
-class Stack:
 
-    def __init__(self):
-        self.stack = []
 
-    def empty(self):
-        return len(self.stack) == 0
-
-    def add(self, dataval):
-# Use list append method to add element
-        if dataval not in self.stack:
-            self.stack.append(dataval)
-            return True
-        else:
-            return False
-        
-# Use list pop method to remove element
-    def remove(self):
-        if len(self.stack) <= 0:
-            return ("No element in the Stack")
-        else:
-            return self.stack.pop()
-#######################################################
 import time
 class BranchAndBoundSelector(Selector):
     def __init__(self, instance: Instance, startTime):
@@ -87,11 +66,10 @@ class BranchAndBoundSelector(Selector):
 
     def branchAndBound(self, node):
         problemUpperBound = self.heuristicSolution()
-        print('Initial upper bound = %s' % problemUpperBound)
+        # print('Initial upper bound = %s' % problemUpperBound)
         currentOptimum = copy.deepcopy(node)
         candidateQueue = Stack()
         candidateQueue.add((node, 0))
-        print('Starting main loop...')
         while True and time.time()-self.startTime<60:
             assert not candidateQueue.empty()
             currNode, depth = candidateQueue.remove()
@@ -99,8 +77,8 @@ class BranchAndBoundSelector(Selector):
                 if self.objectiveFunction(currNode) < problemUpperBound:
                     currentOptimum = copy.deepcopy(currNode)
                     problemUpperBound = self.objectiveFunction(currentOptimum)
-                    print('Current optimum updated: %s' % currentOptimum.getHeuristic())
-                    print(problemUpperBound)
+                    # print('Current optimum updated: %s' % currentOptimum.getHeuristic())
+                    # print(problemUpperBound)
             else:
                 for childBranch in self.generateChildNodes(currNode, depth):
                     if self.lowerBoundFunction(childBranch) < problemUpperBound:
@@ -108,7 +86,6 @@ class BranchAndBoundSelector(Selector):
 
             if candidateQueue.empty():
                 break
-        print ('Finish main loop')
 
         return currentOptimum
 
@@ -174,3 +151,64 @@ class MiniMaxSelector(Selector):
         # print ('Optimal path =', optimalPath)
         # print ('-------------------------------------------------')
         return optimalPath
+
+
+class BorderSelector(Selector):
+    def __init__(self, instance: Instance, FIREMEN_AMOUNT: int):
+        """
+            Parametros
+            ---
+            instance: Instance - Instancia a ser processada
+            FIREMEN_AMOUNT: int - Numero de bombeiros
+        """
+        super().__init__(instance)
+        self.FIREMEN_AMOUNT = FIREMEN_AMOUNT
+
+    def selectDefenseVertex(self):
+        """
+            Retorna
+            ---
+            [int] - Retorna uma lista de tamanho FIREMEN_AMOUNT que corresponde
+                    aos vertices a serem defendidos em um dado round
+        """
+        borderVertices = list()
+        graphVertices = self.instance.graph.getVertices()
+        burntVertices = [v for v in graphVertices
+                           if v.getState() == State.BURNT]
+
+        # Recebe todos os vizinhos INTOCADOS dos vertices pegando fogo
+        for burntVertex in burntVertices:
+            neighbors = burntVertex.getNeighbors()
+            [borderVertices.append(n) for n in neighbors]
+        borderVertices = list(set(borderVertices))
+        borderVertices = [v for v in borderVertices
+                            if graphVertices[v].getState() == State.UNTOUCHED]
+
+        numNeighbors = [self.getNumNeighbors(b) for b in borderVertices]
+
+        threatenedVertices = list(zip(borderVertices, numNeighbors))
+        threatenedVertices.sort(key=lambda x:x[1], reverse=True)
+
+        return [v[0] for v in threatenedVertices[:self.FIREMEN_AMOUNT]]
+
+
+    def getNumNeighbors(self, vertexIndex: int):
+        """
+            Parametros
+            ---
+            vertexIndex:int - Indice de um vertice
+
+            Retorna
+            ---
+            int - Grau do vertice passado por parametro
+                  (DESCONSIDERA VIZINHOS BURNT OU PROTECTED)
+        """
+        neighborsCounter = 0
+
+        vertex = self.instance.getVertex(vertexIndex)
+        for neighbor in vertex.getNeighbors():
+            if self.instance.getVertex(neighbor).getState() == State.UNTOUCHED:
+                neighborsCounter += 1
+
+        return neighborsCounter
+

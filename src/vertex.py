@@ -7,13 +7,10 @@ class State(Enum):
 
 class Vertex():
     def __init__(self, index):
-        """
-            Inicializa um vértice com um índicee um estado intocado
-        """
         self.index = index
         self.state = State.UNTOUCHED
         self.neighbors = list()
-    
+
     def getIndex(self) -> int:
         """
             Retorna
@@ -21,7 +18,7 @@ class Vertex():
             int: Retorna o índice do vértice
         """
         return self.index
-    
+
     def setState(self, state:State):
         """
             Modifica o estado atual do vértice
@@ -30,9 +27,11 @@ class Vertex():
             ---
             state:State - Novo estado do vértice
         """
+        # Apenas vertices intocados podem ter o estado modificado
         assert self.state == State.UNTOUCHED
+
         self.state = state;
-    
+
     def getState(self) -> State:
         """
             Retorna
@@ -58,7 +57,7 @@ class Vertex():
             int: Indice de todos os vizinhos do vértice
         """
         return self.neighbors
-    
+
     def __str__(self):
         stateStr = ""
         if self.state == State.UNTOUCHED:

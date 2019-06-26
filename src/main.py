@@ -1,13 +1,14 @@
 from instance import Instance
 from vertex import State
 from csvGenerator import CsvGenerator
-import selector
+from selector import BorderSelector, Selector
 import time
 
 
 def runInstance(instanceNumber: int) -> (Instance, float):
     """
         Realiza a leitura e a execução de uma instância
+
         Parâmetros
         ---
         int: número da instância a ser executada
@@ -19,21 +20,20 @@ def runInstance(instanceNumber: int) -> (Instance, float):
     """
     instance = Instance()
     filepath = '../instances/%s.txt' % instanceNumber
-    print('Lendo o arquivo de instancia... (%s)' % filepath)
     instance.readInstance(filepath)
-    print ('Graph with %s vertices' % instance.getGraphVertexCount())
+
     start_time = time.time()
     result = solve(instance, start_time)
     finish_time = time.time()
 
-    instance.printReport()
-    print('Time = %s seconds' % str(finish_time-start_time))
-    assert (finish_time-start_time) < 600.0  # 10 min time limit
+    print('Numero de vertices queimados = %s' %
+        instance.getVertexCounterByState(State.BURNT))
+    for roundReport in instance.report:
+        print ('Vertice %s defendido no round %s' %
+            (roundReport['index'], roundReport['round']))
 
-    if result is not None:
-        return (result, finish_time-start_time)
-    else:
-        return (instance, finish_time-start_time)
+    assert (finish_time-start_time) < 600.0  # Limite de 10 minutos
+    return instance
 
 
 def solve(instance: Instance, startTime):
@@ -45,82 +45,53 @@ def solve(instance: Instance, startTime):
         Instance: instâcia a ser resolvida
     """
     FIREMEN_AMOUNT = 5
-    MINIMAX_MAX_DEPTH = 4
-    toBlock = []
-    return selector.BranchAndBoundSelector(instance, startTime).selectDefenseVertex()
 
-    # while True:
-    #     if instance.getVertexCounterByState(State.UNTOUCHED) > 0:
-    #         for i in range(FIREMEN_AMOUNT):
-    #             if len(toBlock) > 0:
-    #                 instance.protectVertex(toBlock.pop(0))
-    #             else:
-    #                 indexesToBlock = selector.MiniMaxSelector(instance, MINIMAX_MAX_DEPTH).selectDefenseVertex()
-    #                 if indexesToBlock != []:
-    #                     instance.protectVertex(indexesToBlock.pop(0))
-    #                     [toBlock.append(index) for index in indexesToBlock]
-    #     # Propaga o fogo e retorna se existe um proximo round
-    #     if instance.nextRound() is not True:
-    #         # Se nao existe um proximo round o loop é finalizado
-    #         break
+    while True:
+        if instance.getVertexCounterByState(State.UNTOUCHED) > 0:
+            selector = BorderSelector(instance, FIREMEN_AMOUNT)
+
+            indexesToBlock = selector.selectDefenseVertex()
+            assert len(indexesToBlock) <= FIREMEN_AMOUNT
+            for i in indexesToBlock:
+                instance.protectVertex(i)
+
+        if instance.nextRound() is not True: # Se nao existe proximo round
+            break
 
 
-def saveCSV(results: [(Instance, float)]):
+def saveCSV(instance: Instance, instNumber: int):
     """
         Realiza a preparação dos dados e os salva em um arquivo CSV
 
         Parâmetros
         ---
-        [Instancia, float]: Lista contendo instâncias em seus estados finais e
-                            seus respectivos tempos de execução
+        instance: Instance - Instancia a ter seus resultados salvos
+        instNumber: int - Numero da instancia a ser salva
     """
     headerElements = [
-        'Instância',
-        'Vértices Queimados',
-        'Total de Vértices',
-        'Defesas por Round',
-        'Tempo de Execução'
+        'Round',
+        'Vertice Defendido'
     ]
+
     dataMatrix = []
-    for i, (instance, execTime) in enumerate(results):
+    for roundReport in instance.report:
         matrixLine = [
-            i+1,                                            # Instância
-            instance.getVertexCounterByState(State.BURNT),  # Vertices Queimados
-            instance.getGraphVertexCount(),                 # Total de Vertices
-            defPerRoundScript(instance),                    # Defesas por Round
-            str(round(execTime, 4)).replace('.', ',')       # Tempo de execução
+            roundReport['round'],
+            roundReport['index']
         ]
         dataMatrix.append(matrixLine)
 
-    CsvGenerator('../output.csv', headerElements, dataMatrix).writeCSV()
-
-
-def defPerRoundScript(instance: Instance) -> str:
-    """
-        Formata uma string contendo os vértices defendidos a cada round
-        
-        Parâmetros
-        ---
-        Instance: instância em seu estado final
-
-        Retorna
-        ---
-        str: string contendo vértices defendidos a cada round
-    """
-    numRounds = max(instance.report, key=lambda x:x['round'])['round']
-    finalStr = ""
-    for i in range(numRounds):
-        roundNum = i+1
-        protected = [str(e['index']) for e in instance.report 
-                                        if e['round'] == roundNum]
-        finalStr += 'Round %s (%s)  ' % (roundNum, ", ".join(protected))
-    return finalStr
+    saveFilepath = '../outputs/%s.csv' % instNumber
+    CsvGenerator(saveFilepath, headerElements, dataMatrix).writeCSV()
 
 
 if __name__ == "__main__":
-    results = list()
-    for i in range(1, 12):
-        print ('## Instance %s' % i)
-        results.append(runInstance(i))
-        print ('###################################################################################################')
-    saveCSV(results)
+    NUM_INSTANCES = 11
+
+    for instanceNumber in range(1, NUM_INSTANCES+1):
+        print ("Rodando instancia  %s/%s..." % (instanceNumber, NUM_INSTANCES))
+        instFinalState = runInstance(instanceNumber)
+        saveCSV(instFinalState, instanceNumber)
+        print('---------------------------------------------------------------')
+
+    print("Concluido!")
