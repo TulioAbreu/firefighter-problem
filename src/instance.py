@@ -77,10 +77,10 @@ class Instance():
             bool: Retorna se o grafo foi modificado durante a expansão do fogo?
         """
         changed = False
-        burntVertex = self.graph.getVertexByIndex(fireIndex)
+        burntVertex = self.getVertex(fireIndex)
 
         for neighbor in burntVertex.getNeighbors():
-            neighborState = self.graph.getVertexByIndex(neighbor).getState()
+            neighborState = self.getVertex(neighbor).getState()
             if neighborState == State.BURNT:
                 pass
             elif neighborState == State.PROTECTED:
@@ -90,6 +90,7 @@ class Instance():
                 self.fireList.append(neighbor)
                 self.burntVertices += 1
                 changed = True
+
         return changed
 
     def getVertexCounterByState(self, state: State) -> int:
@@ -140,10 +141,12 @@ class Instance():
         return self.graph.getVertexByIndex(index)
 
     def printReport(self):
-        print ('Num. vertices queimados = %s' % self.getVertexCounterByState(State.BURNT))
+        print ('Num. vertices queimados = %s' 
+            % self.getVertexCounterByState(State.BURNT))
 
         for defVertex in self.report:
-            print("Vertex %s deffended in round %s" % (defVertex['index'], defVertex['round']))
+            print("Vertex %s deffended in round %s" 
+                % (defVertex['index'], defVertex['round']))
 
     def getHeuristic(self) -> int:
         return self.getVertexCounterByState(State.BURNT)
@@ -157,6 +160,11 @@ class Instance():
         return self.graph.getVertexCount()
 
     def filterUntouchedVertices(self) -> [int]:
+        """
+            Retorna
+            ---
+            [int] - Indice de vertices intocados
+        """
         untouchedVertices = list()
         for i in range(self.graph.getVertexCount()):
             if self.graph.getVertexByIndex(i).getState() == State.UNTOUCHED:

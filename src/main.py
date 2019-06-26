@@ -26,13 +26,15 @@ def runInstance(instanceNumber: int) -> (Instance, float):
     result = solve(instance, start_time)
     finish_time = time.time()
 
-    print('Numero de vertices queimados = %s' %
-        instance.getVertexCounterByState(State.BURNT))
+    print('Numero de vertices queimados = %s/%s' %
+        (instance.getVertexCounterByState(State.BURNT), 
+         instance.getGraphVertexCount()))
     for roundReport in instance.report:
         print ('Vertice %s defendido no round %s' %
             (roundReport['index'], roundReport['round']))
 
     assert (finish_time-start_time) < 600.0  # Limite de 10 minutos
+    print ('Time: %s' %  (finish_time-start_time))
     return instance
 
 
@@ -86,7 +88,7 @@ def saveCSV(instance: Instance, instNumber: int):
 
 
 if __name__ == "__main__":
-    NUM_INSTANCES = 11
+    NUM_INSTANCES = 12
 
     for instanceNumber in range(1, NUM_INSTANCES+1):
         print ("Rodando instancia  %s/%s..." % (instanceNumber, NUM_INSTANCES))

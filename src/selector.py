@@ -211,4 +211,3 @@ class BorderSelector(Selector):
                 neighborsCounter += 1
 
         return neighborsCounter
-
