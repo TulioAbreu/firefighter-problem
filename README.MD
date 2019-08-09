@@ -1,3 +1,7 @@
+# Trabalho Prático da disciplina Otimização em Redes
+
+Segue abaixo o enunciado do trabalho, utilizado como base para a implementação deste projeto.
+
 **Trabalho Prático – O Problema do Brigadista em Grafos**
 
 **Referência**
